@@ -1,0 +1,512 @@
+metadata:
+  title: 2026 Tax Assessment Appeal Tool
+  short title: Tax Assessment Appeal
+  comment: This is a tool to walk through a tax assessment appeal. 
+---
+objects:
+  - client: Individual
+---
+mandatory: true
+code: |
+  import requests
+  import pandas as pd
+  import json
+  import re
+
+  def get_data(guessed_address):
+      guessed_address = guessed_address.lower()
+      symbols = re.split("\\s+", guessed_address)
+      guessed_address_wildcard = "%".join(symbols)
+  
+      url = f"https://phl.carto.com/api/v2/sql?q=SELECT * FROM opa_properties_public WHERE LOWER(location) LIKE '%{guessed_address_wildcard}%'"
+      req = requests.get(url)
+
+      if (req.status_code == 400):
+        return None
+      elif (req.json()['total_rows'] == 0):
+        return None
+      else:
+        json_data = req.json()
+        return json_data
+  
+  def get_all_data(guessed_address):
+    data = get_data(guessed_address)
+    new_dictionary = {}
+    for i in data['rows']:
+      new_dictionary[i['location']] = {}
+      for key, val in i.items():
+        new_dictionary[i['location']][key] = val
+
+    return new_dictionary
+
+  def code_to_condition(code):
+    if (code in [1, '1']):
+      return 'New Construction'
+    elif (code in [2, '2']):
+      return 'Rehab'
+    elif (code in [3, '3']):
+      return 'Above Average'
+    elif (code in [4, '4']):
+      return 'Average'
+    elif (code in [5, '5']):
+      return 'Below Average'
+    elif (code in [6, '6']):
+      return 'Poor'
+    elif (code in [7, '7']):
+      return 'Shell, Sealed, or Structurally Compromised'
+    else:
+      return 'Undetermined'
+
+  def code_to_condition_description(code):
+    if (code in [1, '1']):
+      return "New Construction"
+    elif (code in [2, '2']):
+      return 'Rehab'
+    elif (code in [3, '3']):
+      return 'Above Average: A well-maintained home with newer features such as floors, windows,and doors.  Not a new build or complete/recent rehab.'
+    elif (code in [4, '4']):
+      return 'Average: This is the condition of most homes in Philadelphia.  Use this if your home is in need of some minor maintenance, but is generally livable and well-maintained.'
+    elif (code in [5, '5']):
+      return 'Below Average: Use this condition code if your home is in need of major repairs, or has serious defects (fallen-in ceilings, sagging porch, cracking walls).  This condition code is also usually the right one to use if a tree has fallen onto your home and caused minor to moderate damage.'
+    elif (code in [6, '6']):
+      return 'Poor: Use this if your property is in poor enough condition that it is in need of a complete rehabilitation.  This category often includes homes that are unsafe to live in (buckling walls, missing roof pieces, etc.)  Use this condition code if a tree has fallen onto your home and caused major damage.'
+    elif (code in [7, '7']):
+      return 'Sealed/Structurally Compromised: Use this condition code of your property is a shell and needs to be demolished.'
+    else:
+      return 'Undetermined'
+
+  def condition_to_code(condition):
+    if (code == 'New Construction'):
+      return 1
+    elif (code == 'Rehab'):
+      return 2
+    elif (code == 'Above Average'):
+      return 3
+    elif (code == 'Average'):
+      return 4
+    elif (code == 'Below Average'):
+      return 5
+    elif (code == 'Poor'):
+      return 6
+    elif (code == 'Shell, Sealed, or Structurally Compromised'):
+      return 7
+    else:
+      return 'Undetermined'
+---
+continue button field: continuing
+question: |
+  TAX ASSESSMENT APPEAL SCREENING
+subquestion: |
+
+  ## About this Program
+  Use this screener to create a form you can give to the County Assistance Office to identify whether you should be exempt from the SNAP work requirements. At the end, you will get a form you can print or email to yourself. Give the form to the County Assistance Office, through uploading it to your My Compass account or delivering it to the office in person or by mail, email, or fax.
+
+  This tax assessment appeal tool highlights some of the common reasons people use to file tax appeals.  These are not the only reasons to support a tax appeal.  If you have questions about whether you should file a tax appeal, you should consult with an attorney or tax professional.
+
+  ## Not a Uniformity Assessment
+  This tool does not do a uniformity analysis.  For information about uniformity, see (link to uniformity materials).  If you are considering appealing based on a uniformity challenge, you should consider consulting with an attorney or tax professional.
+  
+  This tax appeal tool is designed to be used on residential properties assessed at under {one million dollars}.  If you would like to appeal an assessment of a commercial property or a home valued at over one million dollars, you should prepare the appeal yourself or consult with an attorney or tax professional.
+
+  ## Informal Appeals
+  
+  This screener prepares both the First Level Review appeal (the “informal” appeal filed with the Office of Property Assessment) and the Board of Revision of Taxes appeal (the “formal” appeal).  Property owners may submit either or both of these appeals.
+  
+  Please note that this assessment tool helps you prepare and file your own appeal.  Community Legal Services is not providing you with legal advice or representation.
+  
+  Success in your assessment appeal is not guaranteed.  There are many factors that go into property tax assessments.
+  
+  You should use this form if you are:
+
+    * The record owner of the property
+
+    * An “equitable owner” of the property  (for example, you have inherited the home but not yet put your name on the deed)
+
+    * Required to pay the property taxes for the property
+
+  **I understand the above information and would like to use this assessment appeal tool.**
+mandatory: true
+---
+mandatory: true
+question: |
+  Please type in your address.
+fields:
+  - Address: address_guess
+---
+mandatory: true
+code: |
+  if (get_data(address_guess) is None):
+    del address_guess
+---
+mandatory: true
+question: |
+  We found these addresses for you based on your search. Please confirm which one is yours.
+fields:
+  - Address: propertyaddress_1
+    code: |
+      get_all_data(address_guess).keys()
+      
+---
+code: |
+  all_data = get_all_data(propertyaddress_1)
+  condition_code = code_to_condition(all_data[propertyaddress_1]['exterior_condition'])
+---
+continue button field: continuing
+mandatory: true
+question: |
+  Assessment Market Value 
+subquestion: |
+  Your 2026 Assessment was ${currency(all_data[propertyaddress_1]['market_value'])}.
+
+  This is the City’s calculation of the market value of your home. If you think this market value is inaccurate, you should file an assessment appeal.  
+  If you think this market value is accurate, but that your property taxes are too high, you should contact your local [elected officials]("https://phlcouncil.com/council-members/")
+  
+  If you thinks this market value is accurate but you can’t afford your tax bill, you should apply for property tax relief. (link to property tax relief site)
+  
+  Would you like to file an assessment appeal? 
+yesno: fileAppeal
+---
+mandatory: fileAppeal == True
+question: |
+  Please list information for the following:
+fields:
+  - Mailing Address: mailing_1
+    default: |
+      ${ propertyaddress_1 }
+  - Mailing City/State: mailing_citystate
+    default: |
+      Philadelphia, PA
+  - Mailing Zip Code: mailing_zipcode
+    default: |
+      ${ all_data[propertyaddress_1]['mailing_zip'] }
+  - Owner Name: ownername_1
+    default: |
+      ${ all_data[propertyaddress_1]['owner_1'] }
+  - Owner Name 2: ownername_2
+    default: |
+      ${ all_data[propertyaddress_1]['owner_2'] }
+  - Property Address: propertyaddress_1
+    default: |
+      ${ all_data[propertyaddress_1]['propertyaddress_1'] }
+  - Property City State: property_citystate
+    default: |
+      Philadelphia, PA
+  - Property Zip Code: property_zipcode
+    default: |
+      ${ all_data[propertyaddress_1]['zip_code'] }
+  - Phone Number: phone_number
+  - OPA Account No.: opa_accountno
+    default: |
+      ${ all_data[propertyaddress_1]['objectid'] }
+  - Email Address: email_address
+  - Value Building: value_bldg
+    default: |
+      ${ all_data[propertyaddress_1]['taxable_building'] }
+  - Value Land: value_land
+    default: |
+      ${ all_data[propertyaddress_1]['taxable_land'] }
+  - Submit Date: submit_date
+    default: |
+      ${ today(timezone="EST")}
+  - Owner 1: owner_1
+    default: |
+      ${ all_data[propertyaddress_1]['owner_1'] }
+  - Would you like to be reached by phone, email, or mail?: contact_preference
+    datatype: radio
+    choices:
+      - Phone
+      - Email
+      - Mail
+---
+code: |
+  if (contact_preference == "Phone"):
+    if_prefers_email = True
+  elif (contact_preference == "Email"):
+    if_prefers_phone = True
+  elif (contact_preference == "Mail"):
+    if_prefers_usmail = True
+  else:
+    if_prefers_usmail = True
+---
+continue button field: continuing
+mandatory: fileAppeal == True
+question: |
+  Appraisal
+subquestion: |
+  Did you have a professional appraisal from within the past 3 years showing a home value lower than the assessed value?
+field: if_appraisal
+buttons:
+  - Yes
+  - No
+---
+continue button field: continuing
+mandatory: if_appraisal == 'Yes'
+question: |
+  You had an appraisal.
+subquestion: |
+  Generally, an appraisal is a strong basis for an appeal. If you have a recent appraisal showing a lower home value than the City's assessment, you can appeal on that basis alone, and there is no need for you to answer any other questions. However, if you would like to answer other questions, you may do so. 
+fields:
+  - Please upload a picture of your appraisal.: appraisal_document
+    datatype: file
+  - What was the appraisal amount?: appraisal_value
+---
+code: |
+  if (if_appraisal == 'Yes'):
+    proposed_value = appraisal_value
+---
+continue button field: continuing
+mandatory: true
+question: |
+  Property Characteristics
+subquestion: |
+  The City uses certain information about your property’s characteristics to determine its market value.  Some of those characteristics are listed below. If any of them are incorrect, this may be a reason the City should lower your tax assessment.  However, it also may be a reason for the City to increase your assessment.  For example, if the City’s records show that your home has three bedrooms, and it actually has five bedrooms, that may increase.
+---
+continue button field: continuing
+mandatory: true
+question: |
+  Attributes
+subquestion: |
+  Please verify whether any of the following attributes are incorrect.
+
+  If any are incorrect, please explain in the space why your home may differ in the characteristics here.
+  
+fields:
+  - Explanation: explain_property_chars
+    datatype: area
+    required: false
+  - Square footage of lot: sqr_foot_lot
+    default: |
+      ${ all_data[propertyaddress_1]['total_area'] }
+  - Square footage of home: sqr_foot_home
+    default: |
+      ${ all_data[propertyaddress_1]['total_livable_area'] }
+  - Number of bedrooms: num_rooms
+    default: |
+      ${ all_data[propertyaddress_1]['number_of_rooms'] }
+  - Number of stories: num_stories
+    default: |
+      ${ all_data[propertyaddress_1]['number_stories'] }
+  - Fireplaces: num_fire_places
+    default: |
+      ${ all_data[propertyaddress_1]['fireplaces'] }
+  - Central air: central_air
+    default: |
+      ${ all_data[propertyaddress_1]['central_air'] }
+---
+continue button field: continuing
+mandatory: true
+question: |
+  Condition Code
+subquestion: |
+  The City has determined that your home is ${condition_code}.  This “condition code” has an effect on your assessment.  For example, an otherwise identical home in “below average” condition will have a lower tax assessment than a home in “average” condition.  
+
+  ## Description
+
+  ${code_to_condition_description(all_data[propertyaddress_1]['exterior_condition'])}
+  
+
+  Does this condition type look correct?
+
+field: condition_correct
+buttons:
+  - Yes
+  - No
+---
+terms:
+  Above Average: |
+    A well-maintained home with newer features such as floors, windows,and doors.  Not a new build or complete/recent rehab.
+  Average: |
+    This is the condition of most homes in Philadelphia.  Use this if your home is in need of some minor maintenance, but is generally livable and well-maintained.
+  Below Average: |
+    Use this condition code if your home is in need of major repairs, or has serious defects (fallen-in ceilings, sagging porch, cracking walls).  This condition code is also usually the right one to use if a tree has fallen onto your home and caused minor to moderate damage.
+  Poor: |
+    Use this if your property is in poor enough condition that it is in need of a complete rehabilitation.  This category often includes homes that are unsafe to live in (buckling walls, missing roof pieces, etc.)  Use this condition code if a tree has fallen onto your home and caused major damage.
+  Sealed/Structurally Unsound: |
+    Use this condition code of your property is a shell and needs to be demolished.
+---
+continue button field: continuing
+mandatory: condition_correct == 'No'
+question: |
+  Revise Condition Code
+subquestion: |
+  You should submit photographs or other records to support your claim.
+
+  Put any other information about why you think your property has been given the wrong condition code.  Write one or two sentences (for example, “A tree fell onto my home, and the roof is damaged and covered with a tarp.” or “A water leak caused serious damage to my ceiling and floors, which need extensive repairs.”) 
+
+  * New Construction (1)
+  * Rehab (2)
+  * {Above Average} (3)
+  * {Average} (4)
+  * {Below Average} (5)
+  * {Poor} (6)
+  * {Sealed/Structurally Unsound} (7):   
+
+fields:
+  - New Condition Code: actual_condition_code
+    input type: radio
+    choices:
+      - 1 New Construction
+      - 2 Rehab
+      - 3 Above Average
+      - 4 Average
+      - 5 Below Average
+      - 6 Poor
+      - 7 Sealed / Structurally Unsound
+  - Please describe why your property should be assessed with this condition code: condition_description
+    input type: area
+  - Please upload a picture to support your claim for a new condition code: condition_code_doc
+    datatype: file
+    required: false
+---
+mandatory: true
+continue button field: continuing
+question: |
+  Market Analysis Question
+subquestion: |
+  Have any of your neighbors recently sold similar properties to yours for less than your assessed value?  You can either ask your neighbors, or look on websites like [Zillow](https://www.zillow.com/?msockid=135c0f2f9d8a65b721ca1c0d9c486406) to browse recent sales.  Try to find properties within three blocks of yours that are similar in size and condition, and have sold within the past two years.
+fields:
+  - Did you find one or more comparable recent sales?: market_analysis
+    input type: radio
+    required: true
+    choices:
+      - Yes
+      - No 
+---
+mandatory: market_analysis == 'Yes'
+continue button field: continuing
+question: |
+  Market Analysis Question
+fields:
+  - What market values did you see for this property?: market_value
+    input type: text
+  - Please list an example of an address with this property value: address_mv_example
+    input type: text
+---
+continue button field: continuing
+mandatory: true
+question: |
+  Catchall
+subquestion: |
+  Is there any other reason you think the City should lower your property value?  If so, list it here and propose a new valuation. 
+  
+  Remember that it is not a valid basis for an appeal to say that you are not happy with how the City is using your taxes, or that you are not getting enough services for your taxes.  It is also not a valid basis for an appeal to say that your tax assessment has gone up too much since last year.  Your appeal must state a reason that your assessment is inaccurate
+fields:
+  - I believe my property is incorrectly assessed because: incorrect_assessment_rationale
+    input type: area
+    required: false
+    default: |
+      Because the City’s assessed value should be 100% of the market value, I request that my property’s assessment be changed to $600. 
+
+      I believe that the Office of Property Assessment erred in characterizing my property. I do not have central air. 
+  - I believe my property is worth: proposed_value
+    input type: text
+    required: false 
+---
+terms:
+  oral hearing: |
+    Oral hearings generally occur on Zoom, but you have the option of attending the hearing in person.  You will have the opportunity to state your reasons for appeal and submit evidence.  It may be several months or more than a year before you are scheduled for a hearing.
+  non-oral hearing: |
+    If you choose a non-oral hearing, the Board of Revision of Taxes will review your submission and issue a decision in writing.
+---
+continue button field: continuing
+mandatory: true
+question: |
+  Hearing Question
+subquestion: |
+  The Board of Revision of Taxes gives you the option of having an {oral hearing} or a {non-oral hearing} for your appeal. 
+  
+  Which would you like?
+
+fields:
+  - Which would you like?: hearing_type
+    input type: radio
+    choices:
+      - Oral Hearing
+      - Non-Oral Hearing
+---
+continue button field: continuing
+mandatory: true
+question: |
+  Please upload any pictures that support your appeal.
+fields:
+  - Pictures of property: appeal_support
+    datatype: file
+    required: false
+---
+question: |
+  Sign your name
+subquestion: |
+  Please add your signature.
+signature: user_signature
+---
+mandatory: True
+question: |
+  Here are your documents!
+attachment code: |
+  [fr_fillable_form, brt_fillable_appeal_form, tax_appeal_letter_template]
+---
+attachment:
+  name: FR Form
+  variable name: fr_fillable_form
+  filename: fr_fillable_form
+  pdf template file: flr_fillable_form.pdf
+  code: template_vals
+  editable: False
+---
+attachment:
+  name: BRT Form
+  variable name: brt_fillable_appeal_form
+  pdf template file: brt_fillable_appeal_form.pdf
+  code: template_vals
+  editable: False
+---
+attachment:
+  name: Tax Appeal Letter
+  variable name: tax_appeal_letter_template
+  docx template file: tax_appeal_letter_template.docx
+  code: template_vals
+  editable: False
+---
+template: email_info
+subject: Tax Appeal
+content: |
+  Hello,
+  
+  Here's the form you completed on Community Legal Services' web page, which compiles information related to your tax assessment appeal.
+---
+code: |
+  template_vals = {
+       "mailing_1": mailing_1,
+       "mailing_citystate": mailing_citystate,
+       "mailing_zipcode": mailing_zipcode,
+       "ownername_1": ownername_1,
+       "ownername_2": ownername_2,
+       "propertyaddress_1": propertyaddress_1,
+       "property_citystate": property_citystate,
+       "property_zipcode": property_zipcode,
+       "phone_number": phone_number,
+       "opa_accountno": opa_accountno,
+       "email_address": email_address,
+       "value_bldg": value_bldg,
+       "value_land": value_land,
+       "proposed_value": proposed_value,
+       "user_signature": user_signature, 
+       "submit_date": submit_date,
+       "owner_1": owner_1
+       #"prefers_phone": if_prefers_phone,
+       #"prefers_email": if_prefers_email,
+       #"prefers_usmail": if_prefers_usmail
+  }
+reconsider: True
+---
+mandatory: True
+code: |
+  # insert interview logic here
+  all_done
+---
+question: |
+  You have reached the end of the
+  interview.
+subquestion: |
+  Thank you for your time.
+sets: all_done
