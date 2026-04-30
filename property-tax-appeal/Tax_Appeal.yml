@@ -197,7 +197,7 @@ fields:
   - Phone Number: phone_number
   - OPA Account No.: opa_accountno
     default: |
-      ${ all_data[propertyaddress_1]['objectid'] }
+      ${ all_data[propertyaddress_1]['parcel_number'] }
   - Email Address: email_address
   - Value Building: value_bldg
     default: |
@@ -220,12 +220,20 @@ fields:
 ---
 code: |
   if (contact_preference == "Phone"):
-    if_prefers_email = True
-  elif (contact_preference == "Email"):
+    if_prefers_email = False
     if_prefers_phone = True
+    if_prefers_usmail = False
+  elif (contact_preference == "Email"):
+    if_prefers_email = True
+    if_prefers_phone = False
+    if_prefers_usmail = False
   elif (contact_preference == "Mail"):
+    if_prefers_email = False
+    if_prefers_phone = False
     if_prefers_usmail = True
   else:
+    if_prefers_email = False
+    if_prefers_phone = False
     if_prefers_usmail = True
 ---
 continue button field: continuing
@@ -423,6 +431,17 @@ fields:
     choices:
       - Oral Hearing
       - Non-Oral Hearing
+
+---
+mandatory: true
+code: |
+  if hearing_type == "Oral Hearing":
+    prefers_oralhearing=True
+    prefers_nonoral=False
+  else:
+    prefers_oralhearing=False
+    prefers_nonoral=True
+          
 ---
 continue button field: continuing
 mandatory: true
@@ -492,10 +511,12 @@ code: |
        "proposed_value": proposed_value,
        "user_signature": user_signature, 
        "submit_date": submit_date,
-       "owner_1": owner_1
-       #"prefers_phone": if_prefers_phone,
-       #"prefers_email": if_prefers_email,
-       #"prefers_usmail": if_prefers_usmail
+       "owner_1": owner_1,
+       "prefers_oralhearing": prefers_oralhearing,
+       "prefers_nonoral": prefers_nonoral,
+       "prefers_phone": if_prefers_phone,
+       "prefers_email": if_prefers_email,
+       "prefers_usmail": if_prefers_usmail
   }
 reconsider: True
 ---
