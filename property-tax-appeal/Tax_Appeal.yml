@@ -9,89 +9,53 @@ objects:
 mandatory: true
 code: |
   import requests
-  import pandas as pd
   import json
-  import re
 
-  def get_data(guessed_address):
-      guessed_address = guessed_address.lower()
-      symbols = re.split("\\s+", guessed_address)
-      guessed_address_wildcard = "%".join(symbols)
-  
-      url = f"https://phl.carto.com/api/v2/sql?q=SELECT * FROM opa_properties_public WHERE LOWER(location) LIKE '%{guessed_address_wildcard}%'"
-      req = requests.get(url)
+  def get_house_json(guessed_address):
+    guessed_address = guessed_address.upper()
+    symbols = re.split("\\s+", guessed_address)
+    guessed_address_wildcard = "%".join(symbols)
 
-      if (req.status_code == 400):
-        return None
-      elif (req.json()['total_rows'] == 0):
-        return None
-      else:
-        json_data = req.json()
-        return json_data
-  
-  def get_all_data(guessed_address):
-    data = get_data(guessed_address)
+    url = f"https://phl.carto.com/api/v2/sql?q=SELECT * FROM opa_properties_public WHERE location LIKE '%{guessed_address_wildcard}%'"
+    resp = requests.get(url)
+
+    if resp.status_code == 400:
+      return None
+    elif resp.json()["total_rows"] == 0:
+      return None
+    else:
+      json_data = resp.json()
+      return json_data
+
+
+  def get_home_guesses(guessed_address):
+    if len(guessed_address) < 6:
+      return {}
+    data = get_house_json(guessed_address)
     new_dictionary = {}
-    for i in data['rows']:
-      new_dictionary[i['location']] = {}
-      for key, val in i.items():
-        new_dictionary[i['location']][key] = val
+    for row in data["rows"]:
+      new_dictionary[row["location"]] = {}
+      for key, val in row.items():
+        new_dictionary[row["location"]][key] = val
 
     return new_dictionary
 
-  def code_to_condition(code):
-    if (code in [1, '1']):
-      return 'New Construction'
-    elif (code in [2, '2']):
-      return 'Rehab'
-    elif (code in [3, '3']):
-      return 'Above Average'
-    elif (code in [4, '4']):
-      return 'Average'
-    elif (code in [5, '5']):
-      return 'Below Average'
-    elif (code in [6, '6']):
-      return 'Poor'
-    elif (code in [7, '7']):
-      return 'Shell, Sealed, or Structurally Compromised'
-    else:
-      return 'Undetermined'
+  condition_codes = [
+    ("New Construction", "New Construction"),
+    ("Rehab", "Rehab"),
+    ("Above Average", "Above Average: A well-maintained home with newer features such as floors, windows,and doors.  Not a new build or complete/recent rehab."),
+    ("Average", "Average: This is the condition of most homes in Philadelphia.  Use this if your home is in need of some minor maintenance, but is generally livable and well-maintained."),
+    ("Below Average", "Below Average: Use this condition code if your home is in need of major repairs, or has serious defects (fallen-in ceilings, sagging porch, cracking walls).  This condition code is also usually the right one to use if a tree has fallen onto your home and caused minor to moderate damage."),
+    ("Poor", "Poor: Use this if your property is in poor enough condition that it is in need of a complete rehabilitation.  This category often includes homes that are unsafe to live in (buckling walls, missing roof pieces, etc.)  Use this condition code if a tree has fallen onto your home and caused major damage."),
+    ("Shell, Sealed, or Structurally Compromised", "Sealed/Structurally Compromised: Use this condition code of your property is a shell and needs to be demolished."),
+  ]
 
-  def code_to_condition_description(code):
-    if (code in [1, '1']):
-      return "New Construction"
-    elif (code in [2, '2']):
-      return 'Rehab'
-    elif (code in [3, '3']):
-      return 'Above Average: A well-maintained home with newer features such as floors, windows,and doors.  Not a new build or complete/recent rehab.'
-    elif (code in [4, '4']):
-      return 'Average: This is the condition of most homes in Philadelphia.  Use this if your home is in need of some minor maintenance, but is generally livable and well-maintained.'
-    elif (code in [5, '5']):
-      return 'Below Average: Use this condition code if your home is in need of major repairs, or has serious defects (fallen-in ceilings, sagging porch, cracking walls).  This condition code is also usually the right one to use if a tree has fallen onto your home and caused minor to moderate damage.'
-    elif (code in [6, '6']):
-      return 'Poor: Use this if your property is in poor enough condition that it is in need of a complete rehabilitation.  This category often includes homes that are unsafe to live in (buckling walls, missing roof pieces, etc.)  Use this condition code if a tree has fallen onto your home and caused major damage.'
-    elif (code in [7, '7']):
-      return 'Sealed/Structurally Compromised: Use this condition code of your property is a shell and needs to be demolished.'
-    else:
-      return 'Undetermined'
-
-  def condition_to_code(condition):
-    if (code == 'New Construction'):
-      return 1
-    elif (code == 'Rehab'):
-      return 2
-    elif (code == 'Above Average'):
-      return 3
-    elif (code == 'Average'):
-      return 4
-    elif (code == 'Below Average'):
-      return 5
-    elif (code == 'Poor'):
-      return 6
-    elif (code == 'Shell, Sealed, or Structurally Compromised'):
-      return 7
-    else:
-      return 'Undetermined'
+  def get_condition_code_and_desc(code):
+    try:
+        code = int(code)
+        return condition_codes[code - 1] # To account for 0 index
+    except:
+        return ("Undetermined", "Undetermined")
 ---
 continue button field: continuing
 question: |
@@ -135,7 +99,7 @@ fields:
 ---
 mandatory: true
 code: |
-  if (get_data(address_guess) is None):
+  if (len(get_home_guesses(address_guess).keys()) < 1):
     del address_guess
 ---
 mandatory: true
@@ -144,19 +108,19 @@ question: |
 fields:
   - Address: propertyaddress_1
     code: |
-      get_all_data(address_guess).keys()
+      get_home_guesses(address_guess).keys()
       
 ---
 code: |
-  all_data = get_all_data(propertyaddress_1)
-  condition_code = code_to_condition(all_data[propertyaddress_1]['exterior_condition'])
+  home_data = get_home_guesses(address_guess)[propertyaddress_1]
+  condition_code, condition_code_description = get_condition_code_and_desc(home_data['exterior_condition'])
 ---
 continue button field: continuing
 mandatory: true
 question: |
   Assessment Market Value 
 subquestion: |
-  Your 2026 Assessment was ${currency(all_data[propertyaddress_1]['market_value'])}.
+  Your 2026 Assessment was ${currency(home_data['market_value'])}.
 
   This is the City’s calculation of the market value of your home. If you think this market value is inaccurate, you should file an assessment appeal.  
   If you think this market value is accurate, but that your property taxes are too high, you should contact your local [elected officials]("https://phlcouncil.com/council-members/")
@@ -178,39 +142,39 @@ fields:
       Philadelphia, PA
   - Mailing Zip Code: mailing_zipcode
     default: |
-      ${ all_data[propertyaddress_1]['mailing_zip'] }
+      ${ home_data['mailing_zip'] }
   - Owner Name: ownername_1
     default: |
-      ${ all_data[propertyaddress_1]['owner_1'] }
+      ${ home_data['owner_1'] }
   - Owner Name 2: ownername_2
     default: |
-      ${ all_data[propertyaddress_1]['owner_2'] }
+      ${ home_data['owner_2'] }
   - Property Address: propertyaddress_1
     default: |
-      ${ all_data[propertyaddress_1]['propertyaddress_1'] }
+      ${ home_data['propertyaddress_1'] }
   - Property City State: property_citystate
     default: |
       Philadelphia, PA
   - Property Zip Code: property_zipcode
     default: |
-      ${ all_data[propertyaddress_1]['zip_code'] }
+      ${ home_data['zip_code'] }
   - Phone Number: phone_number
   - OPA Account No.: opa_accountno
     default: |
-      ${ all_data[propertyaddress_1]['parcel_number'] }
+      ${ home_data['parcel_number'] }
   - Email Address: email_address
   - Value Building: value_bldg
     default: |
-      ${ all_data[propertyaddress_1]['taxable_building'] }
+      ${ home_data['taxable_building'] }
   - Value Land: value_land
     default: |
-      ${ all_data[propertyaddress_1]['taxable_land'] }
+      ${ home_data['taxable_land'] }
   - Submit Date: submit_date
     default: |
       ${ today(timezone="EST")}
   - Owner 1: owner_1
     default: |
-      ${ all_data[propertyaddress_1]['owner_1'] }
+      ${ home_data['owner_1'] }
   - Would you like to be reached by phone, email, or mail?: contact_preference
     datatype: radio
     choices:
@@ -219,22 +183,9 @@ fields:
       - Mail
 ---
 code: |
-  if (contact_preference == "Phone"):
-    if_prefers_email = False
-    if_prefers_phone = True
-    if_prefers_usmail = False
-  elif (contact_preference == "Email"):
-    if_prefers_email = True
-    if_prefers_phone = False
-    if_prefers_usmail = False
-  elif (contact_preference == "Mail"):
-    if_prefers_email = False
-    if_prefers_phone = False
-    if_prefers_usmail = True
-  else:
-    if_prefers_email = False
-    if_prefers_phone = False
-    if_prefers_usmail = True
+  if_prefers_email = contact_preference == "Phone"
+  if_prefers_phone = contact_preference == "Email"
+  if_prefers_usmail = True if contact_preference not in ["Phone", "Email", "Mail"] else contact_preference == "Mail"
 ---
 continue button field: continuing
 mandatory: fileAppeal == True
@@ -284,22 +235,22 @@ fields:
     required: false
   - Square footage of lot: sqr_foot_lot
     default: |
-      ${ all_data[propertyaddress_1]['total_area'] }
+      ${ home_data['total_area'] }
   - Square footage of home: sqr_foot_home
     default: |
-      ${ all_data[propertyaddress_1]['total_livable_area'] }
+      ${ home_data['total_livable_area'] }
   - Number of bedrooms: num_rooms
     default: |
-      ${ all_data[propertyaddress_1]['number_of_rooms'] }
+      ${ home_data['number_of_rooms'] }
   - Number of stories: num_stories
     default: |
-      ${ all_data[propertyaddress_1]['number_stories'] }
+      ${ home_data['number_stories'] }
   - Fireplaces: num_fire_places
     default: |
-      ${ all_data[propertyaddress_1]['fireplaces'] }
+      ${ home_data['fireplaces'] }
   - Central air: central_air
     default: |
-      ${ all_data[propertyaddress_1]['central_air'] }
+      ${ home_data['central_air'] }
 ---
 continue button field: continuing
 mandatory: true
@@ -310,7 +261,7 @@ subquestion: |
 
   ## Description
 
-  ${code_to_condition_description(all_data[propertyaddress_1]['exterior_condition'])}
+  ${condition_code_description}
   
 
   Does this condition type look correct?
@@ -343,11 +294,11 @@ subquestion: |
 
   * New Construction (1)
   * Rehab (2)
-  * {Above Average} (3)
-  * {Average} (4)
-  * {Below Average} (5)
-  * {Poor} (6)
-  * {Sealed/Structurally Unsound} (7):   
+  * Above Average (3)
+  * Average (4)
+  * Below Average (5)
+  * Poor (6)
+  * Sealed/Structurally Unsound (7):   
 
 fields:
   - New Condition Code: actual_condition_code
@@ -435,12 +386,8 @@ fields:
 ---
 mandatory: true
 code: |
-  if hearing_type == "Oral Hearing":
-    prefers_oralhearing=True
-    prefers_nonoral=False
-  else:
-    prefers_oralhearing=False
-    prefers_nonoral=True
+  prefers_oralhearing=hearing_type == "Oral Hearing"
+  prefers_nonoral=hearing_type == "Non-Oral Hearing"
           
 ---
 continue button field: continuing
