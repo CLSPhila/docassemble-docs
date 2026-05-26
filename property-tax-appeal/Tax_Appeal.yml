@@ -356,10 +356,6 @@ fields:
   - I believe my property is incorrectly assessed because: incorrect_assessment_rationale
     input type: area
     required: false
-    default: |
-      Because the City’s assessed value should be 100% of the market value, I request that my property’s assessment be changed to $600. 
-
-      I believe that the Office of Property Assessment erred in characterizing my property. I do not have central air. 
   - I believe my property is worth: proposed_value
     input type: text
     required: false 
