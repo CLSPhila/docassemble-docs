@@ -11,6 +11,9 @@ code: |
   import requests
   import json
 
+  ADDRESS_SEARCH_LENGTH_THRESHOLD = 6
+
+
   def get_house_json(guessed_address):
     guessed_address = guessed_address.upper()
     symbols = re.split("\\s+", guessed_address)
@@ -29,7 +32,7 @@ code: |
 
 
   def get_home_guesses(guessed_address):
-    if len(guessed_address) < 6:
+    if len(guessed_address) < ADDRESS_SEARCH_LENGTH_THRESHOLD:
       return {}
     data = get_house_json(guessed_address)
     new_dictionary = {}
