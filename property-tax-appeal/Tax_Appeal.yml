@@ -5,60 +5,10 @@ metadata:
 ---
 objects:
   - client: Individual
+  - auditor: Individual
 ---
-mandatory: true
-code: |
-  import requests
-  import json
-
-  ADDRESS_SEARCH_LENGTH_THRESHOLD = 6
-
-
-  def get_house_json(guessed_address):
-    guessed_address = guessed_address.upper()
-    symbols = re.split("\\s+", guessed_address)
-    guessed_address_wildcard = "%".join(symbols)
-
-    url = f"https://phl.carto.com/api/v2/sql?q=SELECT * FROM opa_properties_public WHERE location LIKE '%{guessed_address_wildcard}%'"
-    resp = requests.get(url)
-
-    if resp.status_code == 400:
-      return None
-    elif resp.json()["total_rows"] == 0:
-      return None
-    else:
-      json_data = resp.json()
-      return json_data
-
-
-  def get_home_guesses(guessed_address):
-    if len(guessed_address) < ADDRESS_SEARCH_LENGTH_THRESHOLD:
-      return {}
-    data = get_house_json(guessed_address)
-    new_dictionary = {}
-    for row in data["rows"]:
-      new_dictionary[row["location"]] = {}
-      for key, val in row.items():
-        new_dictionary[row["location"]][key] = val
-
-    return new_dictionary
-
-  condition_codes = [
-    ("New Construction", "New Construction"),
-    ("Rehab", "Rehab"),
-    ("Above Average", "Above Average: A well-maintained home with newer features such as floors, windows,and doors.  Not a new build or complete/recent rehab."),
-    ("Average", "Average: This is the condition of most homes in Philadelphia.  Use this if your home is in need of some minor maintenance, but is generally livable and well-maintained."),
-    ("Below Average", "Below Average: Use this condition code if your home is in need of major repairs, or has serious defects (fallen-in ceilings, sagging porch, cracking walls).  This condition code is also usually the right one to use if a tree has fallen onto your home and caused minor to moderate damage."),
-    ("Poor", "Poor: Use this if your property is in poor enough condition that it is in need of a complete rehabilitation.  This category often includes homes that are unsafe to live in (buckling walls, missing roof pieces, etc.)  Use this condition code if a tree has fallen onto your home and caused major damage."),
-    ("Shell, Sealed, or Structurally Compromised", "Sealed/Structurally Compromised: Use this condition code of your property is a shell and needs to be demolished."),
-  ]
-
-  def get_condition_code_and_desc(code):
-    try:
-        code = int(code)
-        return condition_codes[code - 1] # To account for 0 index
-    except:
-        return ("Undetermined", "Undetermined")
+modules:
+  - .helpers
 ---
 continue button field: continuing
 question: |
@@ -111,19 +61,14 @@ question: |
 fields:
   - Address: propertyaddress_1
     code: |
-      get_home_guesses(address_guess).keys()
-      
----
-code: |
-  home_data = get_home_guesses(address_guess)[propertyaddress_1]
-  condition_code, condition_code_description = get_condition_code_and_desc(home_data['exterior_condition'])
+      sorted(get_home_guesses(address_guess).keys())
 ---
 continue button field: continuing
 mandatory: true
 question: |
   Assessment Market Value 
 subquestion: |
-  Your 2026 Assessment was ${currency(home_data['market_value'])}.
+  Your 2026 Assessment was ${ currency(home_data['market_value']) }.
 
   This is the City’s calculation of the market value of your home. If you think this market value is inaccurate, you should file an assessment appeal.  
   If you think this market value is accurate, but that your property taxes are too high, you should contact your local [elected officials]("https://phlcouncil.com/council-members/")
@@ -137,6 +82,8 @@ mandatory: fileAppeal == True
 question: |
   Please list information for the following:
 fields:
+  - Applicant First Name: client.name.first
+  - Applicant Last Name: client.name.last
   - Mailing Address: mailing_1
     default: |
       ${ propertyaddress_1 }
@@ -165,7 +112,7 @@ fields:
   - OPA Account No.: opa_accountno
     default: |
       ${ home_data['parcel_number'] }
-  - Email Address: email_address
+  - Email Address: client.email
   - Value Building: value_bldg
     default: |
       ${ home_data['taxable_building'] }
@@ -174,10 +121,7 @@ fields:
       ${ home_data['taxable_land'] }
   - Submit Date: submit_date
     default: |
-      ${ today(timezone="EST")}
-  - Owner 1: owner_1
-    default: |
-      ${ home_data['owner_1'] }
+      ${ today(timezone="EST") }
   - Would you like to be reached by phone, email, or mail?: contact_preference
     datatype: radio
     choices:
@@ -185,24 +129,23 @@ fields:
       - Email
       - Mail
 ---
-code: |
-  if_prefers_email = contact_preference == "Phone"
-  if_prefers_phone = contact_preference == "Email"
-  if_prefers_usmail = True if contact_preference not in ["Phone", "Email", "Mail"] else contact_preference == "Mail"
----
 continue button field: continuing
 mandatory: fileAppeal == True
 question: |
   Appraisal
 subquestion: |
   Did you have a professional appraisal from within the past 3 years showing a home value lower than the assessed value?
-field: if_appraisal
+field: had_appraisal
 buttons:
   - Yes
   - No
 ---
+code: |
+  if had_appraisal == "yes":
+    appraisal_document = ""
+    appraisal_value = 0 # Will that have a knockon effect?
+---
 continue button field: continuing
-mandatory: if_appraisal == 'Yes'
 question: |
   You had an appraisal.
 subquestion: |
@@ -213,7 +156,7 @@ fields:
   - What was the appraisal amount?: appraisal_value
 ---
 code: |
-  if (if_appraisal == 'Yes'):
+  if (had_appraisal == 'Yes'):
     proposed_value = appraisal_value
 ---
 continue button field: continuing
@@ -381,21 +324,13 @@ fields:
     choices:
       - Oral Hearing
       - Non-Oral Hearing
-
----
-mandatory: true
-code: |
-  prefers_oralhearing=hearing_type == "Oral Hearing"
-  prefers_nonoral=hearing_type == "Non-Oral Hearing"
-          
 ---
 continue button field: continuing
-mandatory: true
 question: |
   Please upload any pictures that support your appeal.
 fields:
   - Pictures of property: appeal_support
-    datatype: file
+    datatype: files
     required: false
 ---
 question: |
@@ -404,9 +339,52 @@ subquestion: |
   Please add your signature.
 signature: user_signature
 ---
+continue button field: continuing
+mandatory: True
+question: |
+  Please review your answers
+subquestion: |
+  Please take some time to review your answers:
+
+  Answers answers answers
+---
+template: submission_email
+subject: Assessment appeal for ${ propertyaddress_1 }
+content: |
+  Hello,
+
+  This email came from the Tax Assessment Appeal Tool (this really needs a better name).
+
+  Thank you,
+---
+mandatory: True
+code: |
+  auditor.name.first = "Appeal"
+  auditor.name.last = "Auditor"
+  auditor.email = "tsouthard@clsphila.org"
+  fr_sent_ok = send_email(
+    to="tsouthard@clsphila.org",
+    sender=client,
+    reply_to=client,
+    bcc=[auditor],
+    template=submission_email,
+    attachments=pdf_concatenate([fr_fillable_form, tax_appeal_letter_template, appeal_support]),
+  )
+  brt_sent_ok = send_email(
+    to="tsouthard@clsphila.org",
+    sender=client,
+    reply_to=client,
+    bcc=[auditor],
+    template=submission_email,
+    attachments=pdf_concatenate([brt_fillable_appeal_form, tax_appeal_letter_template, appeal_support]),
+  )
+---
 mandatory: True
 question: |
   Here are your documents!
+subquestion: |
+  OPA sent: ${ fr_sent_ok }
+  BRT sent: ${ brt_sent_ok }
 attachment code: |
   [fr_fillable_form, brt_fillable_appeal_form, tax_appeal_letter_template]
 ---
@@ -440,6 +418,9 @@ content: |
   Here's the form you completed on Community Legal Services' web page, which compiles information related to your tax assessment appeal.
 ---
 code: |
+  home_data = get_home_guesses(address_guess)[propertyaddress_1]
+  condition_code, condition_code_description = get_condition_code_and_desc(home_data['exterior_condition'])
+
   template_vals = {
        "mailing_1": mailing_1,
        "mailing_citystate": mailing_citystate,
@@ -451,29 +432,19 @@ code: |
        "property_zipcode": property_zipcode,
        "phone_number": phone_number,
        "opa_accountno": opa_accountno,
-       "email_address": email_address,
+       "email_address": client.email,
        "value_bldg": value_bldg,
        "value_land": value_land,
        "proposed_value": proposed_value,
        "user_signature": user_signature, 
        "submit_date": submit_date,
-       "owner_1": owner_1,
-       "prefers_oralhearing": prefers_oralhearing,
-       "prefers_nonoral": prefers_nonoral,
-       "prefers_phone": if_prefers_phone,
-       "prefers_email": if_prefers_email,
-       "prefers_usmail": if_prefers_usmail
+       "owner_1": ownername_1,
+       "prefers_oralhearing": hearing_type == "Oral Hearing",
+       "prefers_nonoral": hearing_type == "Non-Oral Hearing",
+       "prefers_phone": contact_preference == "Phone",
+       "prefers_email": contact_preference == "Email",
+       "prefers_usmail": True if (
+            contact_preference not in ["Phone", "Email", "Mail"]
+          ) else contact_preference == "Mail"
   }
 reconsider: True
----
-mandatory: True
-code: |
-  # insert interview logic here
-  all_done
----
-question: |
-  You have reached the end of the
-  interview.
-subquestion: |
-  Thank you for your time.
-sets: all_done
