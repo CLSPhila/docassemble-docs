@@ -48,20 +48,23 @@ mandatory: true
 question: |
   Please type in your address.
 fields:
-  - Address: address_guess
----
-mandatory: true
-code: |
-  if (len(get_home_guesses(address_guess).keys()) < 1):
-    del address_guess
----
-mandatory: true
-question: |
-  We found these addresses for you based on your search. Please confirm which one is yours.
-fields:
   - Address: propertyaddress_1
-    code: |
-      sorted(get_home_guesses(address_guess).keys())
+    input type: ajax
+    action: addresslist
+---
+event: addresslist
+code: |
+  set_save_status('ignore')
+  wordstart = action_argument('wordstart')
+  results = []
+  guesses = get_home_guesses(wordstart)
+  for key, val in guesses.items():
+    results.append(key)
+  json_response(results)
+---
+code: |
+  home_data = get_home_guesses(propertyaddress_1)[propertyaddress_1]
+  condition_code, condition_code_description = get_condition_code_and_desc(home_data['exterior_condition'])
 ---
 continue button field: continuing
 mandatory: true
@@ -418,7 +421,7 @@ content: |
   Here's the form you completed on Community Legal Services' web page, which compiles information related to your tax assessment appeal.
 ---
 code: |
-  home_data = get_home_guesses(address_guess)[propertyaddress_1]
+  home_data = get_home_guesses(propertyaddress_1)[propertyaddress_1]
   condition_code, condition_code_description = get_condition_code_and_desc(home_data['exterior_condition'])
 
   template_vals = {
