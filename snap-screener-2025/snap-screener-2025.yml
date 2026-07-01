@@ -1,0 +1,291 @@
+metadata:
+  title: 2025 SNAP Requirement Screener
+  short title: SNAP Screener
+  comment: This is a screener to fill out the SNAP work requirements exemption form with a basic questionnaire
+---
+objects:
+  - client: Individual
+---
+continue button field: continuing
+question: |
+  Use this screener to create a form you can give to the County Assistance Office to identify whether you should be exempt from the SNAP work requirements. At the end, you will get a form you can print or email to yourself. Give the form to the County Assistance Office, through uploading it to your My Compass account or delivering it to the office in person or by mail, email, or fax.
+mandatory: True
+---
+question: |
+  What is your age in years?
+fields:
+  - Your age in years: applicant_age
+    datatype: number
+---
+question: |
+  Is there anyone in your house age 13 or younger?
+yesno: has_kids_under_14
+---
+question: |
+  Do you share SNAP benefits with those children?
+yesno: cooks_for_kids_under_14
+---
+question: |
+  Are you pregnant?
+yesno: is_pregnant
+---
+question: |
+  Do have a physical or mental health condition that reduces your ability to work?
+yesno: has_medical_condition
+---
+question: |
+  Are you receiving disability or sick benefits?
+yesno: is_receiving_disability
+---
+question: |
+  Are you caring for someone who is sick or elderly?
+yesno: is_caring_for
+---
+question: |
+  Are you participating in a drug or alcohol treatment program?
+yesno: in_treatment
+---
+question: |
+  Are you unable to work because of domestic violence?
+subquestion: |
+  Check yes if you or your children will be at risk of being harmed if you work, or it will be more difficult for you to recover from abuse if you work.
+yesno: is_dv_victim
+---
+question: |
+  Are you homeless or facing homelessness? 
+yesno: is_facing_homelessness
+---
+question: |
+  Are you applying for or receiving Unemployment Compensation?
+yesno: is_receiving_uc
+---
+question: |
+  Do you expect to start working within the next 60 days?
+yesno: is_working_soon
+---
+question: |
+  Are you a migrant or seasonal farmworker returning to work within 30 days?
+yesno: is_migrant_worker_returning
+---
+question: |
+  Are you working?
+yesno: is_working
+---
+question: |
+  About that work...
+fields:
+  - Where are you working?: work_place
+  - How many hours per week?: work_hours
+  - What is your hourly rate?: work_rate
+---
+question: |
+  Are you taking classes to learn English or earn a GED?
+yesno: is_taking_ged_class
+---
+question: |
+  Are you in a school or a training program?
+yesno: is_in_school
+---
+question: |
+  About that work...
+fields:
+  - What are you studying?: school_studying
+  - How many hours per week?: school_hours
+---
+question: |
+  Are you doing community service or volunteering?
+yesno: is_volunteering
+---
+question: |
+  About that volunteering...
+fields:
+  - Where are you volunteering?: volunteer_place
+  - How many hours per week?: volunteer_hours
+---
+question: |
+  Are you interested in volunteering?
+yesno: wants_to_volunteer
+---
+question: |
+  We can email you your document. If you choose to, what should we call you?
+subquestion: |
+  This is optional. We can still email you without your name if you like. You can also choose to just download the form without sending an email.
+fields:
+  - What should we call you?: email_name
+---
+question: |
+  # Results
+subquestion: |
+  This information is automatically generated based on your answers and is not legal advice.
+
+  % if any([has_kids_under_14, has_medical_condition, in_treatment, is_caring_for, is_dv_victim, is_facing_homelessness, is_in_school, is_migrant_worker_returning, is_pregnant, is_receiving_disability, is_receiving_uc, is_taking_ged_class, is_volunteering, is_working, is_working_soon]):
+  Use the document linked below (the blue "PDF" link) to tell the CAO that you should be exempt from the work requirements. Fill out your name and your record number (if you know it) on the form, and give it to the CAO.
+  % else:
+  ## Based on your responses,  you are not exempt from SNAP work requirements. As a result, you may only receive 3 months of SNAP every three years. To keep your SNAP, you must comply by working, enrolling in a job training program, or volunteering. Learn more about how to comply with work requirements [here](https://clsphila.org/highlights/complying-with-snap-work-requirements-in-pennsylvania/). If you have questions about how to report work, job training, or volunteering activities, contact your caseworker at the CAO or call 215-560-7226 if you live in Philadelphia.
+  % endif
+
+  % if has_kids_under_14:
+  ## Kids aged 13 or younger, over aged 65, or receiving a disability benefit: 
+
+  You should be protected from the time limit and you do not need to do anything else.  The County Assistance Office already knows this about you.
+
+  % endif
+  % if is_pregnant:
+  ## Pregnant: 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Make sure the CAO knows about your pregnancy. You should not need to prove your pregnancy unless the CAO has reason to doubt you.
+
+  % endif
+  % if has_medical_condition:
+  ## Medical condition that reduces your ability to work: 
+  
+  You will need to provide medical evidence of your condition to be exempt from the work requirement and protected from the time limit. The best way to do this is to have your medical provider complete form [PA 1921](https://www.pa.gov/content/dam/copapwp-pagov/en/dhs/documents/services/assistance/documents/abawd/pa-1921-snap-medical-exemption-form.pdf) and submit the form to the CAO.
+
+  % endif
+  % if is_caring_for:
+  ## Caring for someone who is sick or elderly: 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Make sure the CAO knows about your caregiving responsibilities. You should not need to prove your caregiving unless the CAO has reason to doubt you.
+
+  % endif
+  % if in_treatment:
+  ## Participating in a D&A treatment program: 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Participation in AA or NA should count. Have a counselor at your program complete form PA 1921 which is here. Submit the form to the CAO.
+
+  % endif
+  % if is_dv_victim:
+  ## Unable to work because of domestic violence 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Make sure the CAO knows about your situation (though you should not have to provide details).  You should not need to prove your situation unless the CAO has reason to doubt you.  You could also submit DHS’s form 1747.
+
+  % endif
+  % if is_facing_homelessness:
+  ## Experiencing homelessness: 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Make sure the CAO knows about your situation. You should not need to prove your homelessness unless the CAO has reason to doubt you.
+
+  % endif
+  % if is_receiving_uc:
+  ## Receiving Unemployment Compensation (UC): 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Make sure the CAO knows about your receipt of UC. You should not need to prove you receive UC unless the CAO has reason to doubt you. The CAO has some access to UC records online.
+
+  % endif
+  % if is_working_soon:
+  ## Expect to start work within 60 days: 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Make sure the CAO knows about when your job will start up. You should not need to prove your situation unless the CAO has reason to doubt you.
+
+  % endif
+  % if is_migrant_worker_returning:
+  ## Are you a migrant or seasonal farmworker returning to work within 30 days 
+  
+  You should be exempt from the work requirement and protected from the time limit.  Make sure the CAO knows about when your job will start up.  You should not need to prove your situation unless the CAO has reason to doubt you.
+
+  % endif
+  % if is_working:
+  ## Are you working? 
+  
+  If you are earning at least $217.50 per week before taxes, then you should be exempt from the work requirement and protected from the time limit. Make sure the CAO knows about your pay. You will need to prove paystubs unless you already provided them as part of your most recent application or renewal.
+  
+  If you are working but receiving less than $217.50 per week before taxes, check to see if you are qualify for an exemption. If you are not otherwise exempt, the time limit applies to you. This means that you may only receive 3 months of SNAP within a three year period if you cannot prove you are working or volunteering for at least 20 hours a week. If you are working 20 hours a week or more, be sure you provide paystubs to the CAO so they know. You are complying with the work requirement and your SNAP should be safe. You must tell the CAO right away if your hours dip below 80 hours a month.
+  
+  If you are working less than 20 hours a week and receiving less than $217.50 per week before taxes, and you are not otherwise exempt, then you are in danger of losing your SNAP. See if you can get more hours of work so you can get up to 20 hours a week or $217.50 per week before taxes. If you can earn at least $217.50, you should be exempt from the work requirement and protected from the time limit. You could also volunteer for enough hours to bring your weekly hours up to 20.
+  
+  % endif
+  % if is_taking_ged_class:
+  ## Are you taking classes to learn English or earn a GED? 
+  
+  % endif 
+  % if is_in_school:
+  ## Are you in school or a training program?   
+  
+  If you are in school (high school, college, or post-college) or in a training program at least half time, you should be exempt from the work requirement and protected from the time limit. Make sure the CAO knows about your schooling or training. You should not need to prove your situation unless the CAO has reason to doubt you.
+  
+  % endif
+  % if is_volunteering:
+  ## Are you doing community service or volunteering? 
+  
+  People who are not exempt can satisfy the work requirement by volunteering. The number of hours you must volunteer per month is the amount of your monthly SNAP grant divided by $7.25 (the minimum wage). For example, if you get $292 a month in SNAP, you must volunteer at least 41 hours a month to comply with the work requirement.  ($292 divided by $7.25 = a little over 40). You will need the place you volunteer for to complete the PA 1938 form. Submit the form to the CAO. 
+  % endif
+  
+email template: email_info
+attachment:
+  name: Work Requirement Exemption Form
+  filename: filled-exemption-form
+  pdf template file: work_requirement_exempt_form.pdf
+  editable: False
+  manual:
+    pdf: pdf_concatenate(work_requirement_form, medical_form) if has_medical_condition else pdf_concatenate(work_requirement_form)
+mandatory: True
+---
+attachment:
+  variable name: medical_form
+  pdf template file: PA_1921_medical_exemption_form.pdf
+  editable: False
+---
+attachment:
+  variable name: work_requirement_form
+  pdf template file: work_requirement_exempt_form.pdf
+  code: template_vals
+  editable: False
+---
+template: email_info
+subject: Your SNAP exemptions form
+content: |
+  Hello${ f" {email_name}" if email_name != "" else "" },
+  
+  Here's the form you completed on Community Legal Services' web page, which lists the exemptions from the SNAP work requirement you qualify for.
+  
+  Give this form to your County Assistance Office.  You can upload it through your MyCompass account, or you can drop it off at the CAO, or you could mail or fax it to them.
+  
+  If you are exempt from the SNAP work requirement, then your SNAP should continue and not get cut off after 3 months.  You still have to complete renewal packets that come in the mail.
+---
+code: |
+  template_vals = {}
+
+  def fill_secondary_vals(key, val, fill_symbol):
+    template_vals[f"{key}_yes"] = fill_symbol if val is True else ""
+    template_vals[f"{key}_no"] = fill_symbol if val is False else ""
+
+  if has_kids_under_14 is True:
+    fill_secondary_vals("cooks_for_kids_under_14", cooks_for_kids_under_14, "O")
+  if is_volunteering is False:
+    fill_secondary_vals("wants_to_volunteer", wants_to_volunteer, "X")
+
+  ifyes_dict = {
+    "work_place": work_place if is_working is True else "",
+    "work_hours": work_hours if is_working is True else "",
+    "work_rate": work_rate if is_working is True else "",
+    "school_studying": school_studying if is_in_school is True else "",
+    "school_hours": school_hours if is_in_school is True else "",
+    "volunteer_place": volunteer_place if is_volunteering is True else "",
+    "volunteer_hours": volunteer_hours if is_volunteering is True else "",
+  }
+
+  yesno_dict = {
+    "has_kids_under_14": has_kids_under_14,
+    "is_pregnant": is_pregnant,
+    "has_medical_condition": has_medical_condition,
+    "is_receiving_disability": is_receiving_disability,
+    "is_caring_for": is_caring_for,
+    "in_treatment": in_treatment,
+    "is_dv_victim": is_dv_victim,
+    "is_facing_homelessness": is_facing_homelessness,
+    "is_receiving_uc": is_receiving_uc,
+    "is_working_soon": is_working_soon,
+    "is_migrant_worker_returning": is_migrant_worker_returning,
+    "is_working": is_working,
+    "is_taking_ged_class": is_taking_ged_class,
+    "is_in_school": is_in_school,
+    "is_volunteering": is_volunteering,
+  }
+
+  for key, val in ifyes_dict.items():
+    template_vals[key] = val
+
+  for key, val in yesno_dict.items():
+    template_vals[f"{key}_yes"] = "O" if val is True else ""
+    template_vals[f"{key}_no"] = "O" if val is False else ""
+reconsider: True
