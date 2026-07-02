@@ -50,9 +50,9 @@ question: |
 fields:
   - Address: propertyaddress_1
     input type: ajax
-    action: addresslist
+    action: get_address_list
 ---
-event: addresslist
+event: get_address_list
 code: |
   set_save_status('ignore')
   wordstart = action_argument('wordstart')
