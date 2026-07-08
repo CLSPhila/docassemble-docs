@@ -44,7 +44,6 @@ subquestion: |
   **I understand the above information and would like to use this assessment appeal tool.**
 mandatory: true
 ---
-mandatory: true
 question: |
   Please type in your address.
 fields:
@@ -66,12 +65,12 @@ code: |
   home_data = get_home_guesses(propertyaddress_1)[propertyaddress_1]
   condition_code, condition_code_description = get_condition_code_and_desc(home_data['exterior_condition'])
 ---
+
 continue button field: continuing
-mandatory: true
 question: |
   Assessment Market Value 
 subquestion: |
-  Your 2026 Assessment was ${ currency(home_data['market_value']) }.
+  Your 2026 Assessment was ${currency(home_data['market_value'])}.
 
   This is the City’s calculation of the market value of your home. If you think this market value is inaccurate, you should file an assessment appeal.  
   If you think this market value is accurate, but that your property taxes are too high, you should contact your local [elected officials]("https://phlcouncil.com/council-members/")
@@ -81,7 +80,7 @@ subquestion: |
   Would you like to file an assessment appeal? 
 yesno: fileAppeal
 ---
-mandatory: fileAppeal == True
+mandatory: fileAppeal
 question: |
   Please list information for the following:
 fields:
@@ -89,7 +88,7 @@ fields:
   - Applicant Last Name: client.name.last
   - Mailing Address: mailing_1
     default: |
-      ${ propertyaddress_1 }
+      ${ propertyaddress_1.title() }
   - Mailing City/State: mailing_citystate
     default: |
       Philadelphia, PA
@@ -98,10 +97,10 @@ fields:
       ${ home_data['mailing_zip'] }
   - Owner Name: ownername_1
     default: |
-      ${ home_data['owner_1'] }
+      ${ home_data['owner_1'].title() }
   - Owner Name 2: ownername_2
     default: |
-      ${ home_data['owner_2'] }
+      ${ home_data['owner_2'].title() }
   - Property Address: propertyaddress_1
     default: |
       ${ home_data['propertyaddress_1'] }
@@ -124,7 +123,7 @@ fields:
       ${ home_data['taxable_land'] }
   - Submit Date: submit_date
     default: |
-      ${ today(timezone="EST") }
+      ${ today(timezone="EST")}
   - Would you like to be reached by phone, email, or mail?: contact_preference
     datatype: radio
     choices:
@@ -132,77 +131,54 @@ fields:
       - Email
       - Mail
 ---
-continue button field: continuing
-mandatory: fileAppeal == True
+mandatory: fileAppeal
+code: |
+  appraisal_value = 0
+  if had_appraisal == True:
+    appraisal_document = None
+    appraisal_value = None
+  if_prefers_email = contact_preference == "Phone"
+  if_prefers_phone = contact_preference == "Email"
+  if_prefers_usmail = True if contact_preference not in ["Phone", "Email", "Mail"] else contact_preference == "Mail"
+---
+mandatory: fileAppeal
 question: |
   Appraisal
 subquestion: |
-  Did you have a professional appraisal from within the past 3 years showing a home value lower than the assessed value?
-field: had_appraisal
-buttons:
-  - Yes
-  - No
----
-code: |
-  if had_appraisal == "yes":
-    appraisal_document = ""
-    appraisal_value = 0 # Will that have a knockon effect?
----
-continue button field: continuing
-question: |
-  You had an appraisal.
-subquestion: |
-  Generally, an appraisal is a strong basis for an appeal. If you have a recent appraisal showing a lower home value than the City's assessment, you can appeal on that basis alone, and there is no need for you to answer any other questions. However, if you would like to answer other questions, you may do so. 
+  Generally, an appraisal is a strong basis for an appeal. If you have a recent appraisal showing a lower home value than the City's assessment, you can appeal on that basis alone, and there is no need for you to answer any other questions. However, if you would like to answer other questions, you may do so.
 fields:
+  - "Did you have an appraisal within the past 3 years showing a home value lower than the assessed value?": had_appraisal
+    datatype: yesnoradio
   - Please upload a picture of your appraisal.: appraisal_document
     datatype: file
+    show if: had_appraisal
   - What was the appraisal amount?: appraisal_value
+    show if: had_appraisal
 ---
-code: |
-  if (had_appraisal == 'Yes'):
-    proposed_value = appraisal_value
----
+mandatory: fileAppeal
 continue button field: continuing
-mandatory: true
 question: |
   Property Characteristics
 subquestion: |
   The City uses certain information about your property’s characteristics to determine its market value.  Some of those characteristics are listed below. If any of them are incorrect, this may be a reason the City should lower your tax assessment.  However, it also may be a reason for the City to increase your assessment.  For example, if the City’s records show that your home has three bedrooms, and it actually has five bedrooms, that may increase.
----
-continue button field: continuing
-mandatory: true
-question: |
-  Attributes
-subquestion: |
-  Please verify whether any of the following attributes are incorrect.
+
+  This is information from your last assessment. Please verify whether any of the following attributes are incorrect.
+
+  * Square Footage of the Lot:  ${ home_data['total_area'] }
+  * Square Footage of the Home: ${ home_data['total_livable_area'] }
+  * Number of Rooms: ${ home_data['number_of_rooms'] }
+  * Number of Stories:  ${ home_data['number_stories'] }
+  * Fireplaces: ${ home_data['fireplaces'] }
+  * Central Air (Y for Yes, N for No): ${ home_data['central_air'] }
 
   If any are incorrect, please explain in the space why your home may differ in the characteristics here.
-  
 fields:
-  - Explanation: explain_property_chars
-    datatype: area
-    required: false
-  - Square footage of lot: sqr_foot_lot
-    default: |
-      ${ home_data['total_area'] }
-  - Square footage of home: sqr_foot_home
-    default: |
-      ${ home_data['total_livable_area'] }
-  - Number of bedrooms: num_rooms
-    default: |
-      ${ home_data['number_of_rooms'] }
-  - Number of stories: num_stories
-    default: |
-      ${ home_data['number_stories'] }
-  - Fireplaces: num_fire_places
-    default: |
-      ${ home_data['fireplaces'] }
-  - Central air: central_air
-    default: |
-      ${ home_data['central_air'] }
+- Explanation: explain_property_chars
+  datatype: area
+  required: false
 ---
+mandatory: fileAppeal
 continue button field: continuing
-mandatory: true
 question: |
   Condition Code
 subquestion: |
@@ -215,10 +191,7 @@ subquestion: |
 
   Does this condition type look correct?
 
-field: condition_correct
-buttons:
-  - Yes
-  - No
+noyes: condition_correct
 ---
 terms:
   Above Average: |
@@ -232,8 +205,13 @@ terms:
   Sealed/Structurally Unsound: |
     Use this condition code of your property is a shell and needs to be demolished.
 ---
+mandatory: fileAppeal
+code: |
+  if condition_correct == True:
+    condition_description
+    condition_code_doc
+---
 continue button field: continuing
-mandatory: condition_correct == 'No'
 question: |
   Revise Condition Code
 subquestion: |
@@ -262,25 +240,27 @@ fields:
       - 7 Sealed / Structurally Unsound
   - Please describe why your property should be assessed with this condition code: condition_description
     input type: area
-  - Please upload a picture to support your claim for a new condition code: condition_code_doc
+  - Please upload a document to support your claim for a new condition code: condition_code_doc
     datatype: file
     required: false
 ---
-mandatory: true
+mandatory: fileAppeal
 continue button field: continuing
 question: |
   Market Analysis Question
 subquestion: |
   Have any of your neighbors recently sold similar properties to yours for less than your assessed value?  You can either ask your neighbors, or look on websites like [Zillow](https://www.zillow.com/?msockid=135c0f2f9d8a65b721ca1c0d9c486406) to browse recent sales.  Try to find properties within three blocks of yours that are similar in size and condition, and have sold within the past two years.
-fields:
-  - Did you find one or more comparable recent sales?: market_analysis
-    input type: radio
-    required: true
-    choices:
-      - Yes
-      - No 
+
+  Did you find one or more comparable recent sales?
+  
+yesno: market_analysis
 ---
-mandatory: market_analysis == 'Yes'
+mandatory: fileAppeal
+code: |
+  if market_analysis == True:
+    market_value
+    address_mv_example
+---
 continue button field: continuing
 question: |
   Market Analysis Question
@@ -290,8 +270,8 @@ fields:
   - Please list an example of an address with this property value: address_mv_example
     input type: text
 ---
+mandatory: fileAppeal
 continue button field: continuing
-mandatory: true
 question: |
   Catchall
 subquestion: |
@@ -304,7 +284,8 @@ fields:
     required: false
   - I believe my property is worth: proposed_value
     input type: text
-    required: false 
+    required: false
+    default: ${appraisal_value}
 ---
 terms:
   oral hearing: |
@@ -312,8 +293,8 @@ terms:
   non-oral hearing: |
     If you choose a non-oral hearing, the Board of Revision of Taxes will review your submission and issue a decision in writing.
 ---
+mandatory: fileAppeal
 continue button field: continuing
-mandatory: true
 question: |
   Hearing Question
 subquestion: |
@@ -327,25 +308,32 @@ fields:
     choices:
       - Oral Hearing
       - Non-Oral Hearing
+
 ---
+code: |
+  prefers_oralhearing=hearing_type == "Oral Hearing"
+  prefers_nonoral=hearing_type == "Non-Oral Hearing"
+          
+---
+mandatory: fileAppeal
 continue button field: continuing
 question: |
-  Please upload any pictures that support your appeal.
+  Please upload any additional documents that support your appeal.
 fields:
   - Pictures of property: appeal_support
     datatype: files
     required: false
 ---
+mandatory: fileAppeal
 question: |
   Sign your name
 subquestion: |
   Please add your signature.
 signature: user_signature
 ---
-continue button field: continuing
-mandatory: True
+mandatory: fileAppeal
 question: |
-  Please review your answers
+  Sign your name
 subquestion: |
   Please take some time to review your answers:
 
@@ -382,7 +370,7 @@ code: |
     attachments=pdf_concatenate([brt_fillable_appeal_form, tax_appeal_letter_template, appeal_support]),
   )
 ---
-mandatory: True
+mandatory: fileAppeal
 question: |
   Here are your documents!
 subquestion: |
@@ -421,9 +409,6 @@ content: |
   Here's the form you completed on Community Legal Services' web page, which compiles information related to your tax assessment appeal.
 ---
 code: |
-  home_data = get_home_guesses(propertyaddress_1)[propertyaddress_1]
-  condition_code, condition_code_description = get_condition_code_and_desc(home_data['exterior_condition'])
-
   template_vals = {
        "mailing_1": mailing_1,
        "mailing_citystate": mailing_citystate,
@@ -439,7 +424,7 @@ code: |
        "value_bldg": value_bldg,
        "value_land": value_land,
        "proposed_value": proposed_value,
-       "user_signature": user_signature, 
+       "user_signature": user_signature,
        "submit_date": submit_date,
        "owner_1": ownername_1,
        "prefers_oralhearing": hearing_type == "Oral Hearing",
@@ -451,3 +436,15 @@ code: |
           ) else contact_preference == "Mail"
   }
 reconsider: True
+---
+mandatory: True
+code: |
+  # insert interview logic here
+  all_done
+---
+question: |
+  You have reached the end of the
+  interview.
+subquestion: |
+  Thank you for your time.
+sets: all_done
