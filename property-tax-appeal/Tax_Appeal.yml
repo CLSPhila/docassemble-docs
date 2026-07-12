@@ -89,9 +89,12 @@ fields:
   - Mailing Address: mailing_1
     default: |
       ${ propertyaddress_1.title() }
-  - Mailing City/State: mailing_citystate
+  - Mailing City: mailing_city
     default: |
-      Philadelphia, PA
+      Philadelphia
+  - Mailing State: mailing_state
+    default: |
+      PA
   - Mailing Zip Code: mailing_zipcode
     default: |
       ${ home_data['mailing_zip'] }
@@ -104,9 +107,12 @@ fields:
   - Property Address: propertyaddress_1
     default: |
       ${ home_data['propertyaddress_1'] }
-  - Property City State: property_citystate
+  - Property City: property_city
     default: |
-      Philadelphia, PA
+      Philadelphia
+  - Property City State: property_state
+    default: |
+      PA
   - Property Zip Code: property_zipcode
     default: |
       ${ home_data['zip_code'] }
@@ -332,6 +338,7 @@ subquestion: |
 signature: user_signature
 ---
 mandatory: fileAppeal
+continue button field: continuing
 question: |
   Sign your name
 subquestion: |
@@ -411,12 +418,14 @@ content: |
 code: |
   template_vals = {
        "mailing_1": mailing_1,
-       "mailing_citystate": mailing_citystate,
+       "mailing_city": mailing_city,
+       "mailing_state": mailing_state,
        "mailing_zipcode": mailing_zipcode,
        "ownername_1": ownername_1,
        "ownername_2": ownername_2,
        "propertyaddress_1": propertyaddress_1,
-       "property_citystate": property_citystate,
+       "property_city": property_city,
+       "property_state": property_state,
        "property_zipcode": property_zipcode,
        "phone_number": phone_number,
        "opa_accountno": opa_accountno,
