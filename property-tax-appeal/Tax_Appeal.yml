@@ -343,8 +343,79 @@ question: |
   Sign your name
 subquestion: |
   Please take some time to review your answers:
-
-  Answers answers answers
+review:
+  - Review Applicant First Name: client.name.first
+    button: |
+      You said
+      ${ client.name.first }.
+  - Review Applicant Last Name: client.name.last
+    button: |
+      You said
+      ${ client.name.last }.
+  - Review Mailing Address: mailing_1
+    button: |
+      You said
+      ${ mailing_1 }.
+  - Review Mailing City: mailing_city
+    button: |
+      You said
+      ${ mailing_city }.
+  - Review Mailing State: mailing_state
+    button: |
+      You said
+      ${ mailing_state }.
+  - Review Mailing Zip Code: mailing_zipcode
+    button: |
+      You said
+      ${ mailing_zipcode }.
+  - Review Owner Name: ownername_1
+    button: |
+      You said
+      ${ ownername_1 }.
+  - Review Owner Name 2: ownername_2
+    button: |
+      You said
+      ${ ownername_2 }.
+  - Review Property Address: propertyaddress_1
+    button: |
+      You said
+      ${ propertyaddress_1 }.
+  - Review Property City: property_city
+    button: |
+      You said
+      ${ property_city }.
+  - Review Property City State: property_state
+    button: |
+      You said
+      ${ property_state }.
+  - Review Property Zip Code: property_zipcode
+    button: |
+      You said
+      ${ property_zipcode }.
+  - Review Phone Number: phone_number
+    button: |
+      You said
+      ${ phone_number }.
+  - Review OPA Account No.: opa_accountno
+    button: |
+      You said
+      ${ opa_accountno }.
+  - Review Email Address: client.email
+    button: |
+      You said
+      ${ client.email }.
+  - Review Value Building: value_bldg
+    button: |
+      You said
+      ${ value_bldg }.
+  - Review Value Land: value_land
+    button: |
+      You said
+      ${ value_land }.
+  - Review Contact Preference: contact_preference
+    button: |
+      You said
+      ${ contact_preference }.
 ---
 template: submission_email
 subject: Assessment appeal for ${ propertyaddress_1 }
