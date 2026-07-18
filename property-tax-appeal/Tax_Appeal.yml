@@ -175,7 +175,7 @@ subquestion: |
   * Number of Rooms: ${ home_data['number_of_rooms'] }
   * Number of Stories:  ${ home_data['number_stories'] }
   * Fireplaces: ${ home_data['fireplaces'] }
-  * Central Air (Y for Yes, N for No): ${ home_data['central_air'] }
+  * Central Air: ${ "Yes" if home_data["central_air"] == "Y" else "No"}
 
   If any are incorrect, please explain in the space why your home may differ in the characteristics here.
 fields:
@@ -340,82 +340,82 @@ signature: user_signature
 mandatory: fileAppeal
 continue button field: continuing
 question: |
-  Sign your name
+  Review your name
 subquestion: |
   Please take some time to review your answers:
 review:
-  - Review Applicant First Name: client.name.first
+  - Applicant First Name: client.name.first
     button: |
       You said
-      ${ client.name.first }.
-  - Review Applicant Last Name: client.name.last
+      ${ client.name.first }
+  - Applicant Last Name: client.name.last
     button: |
       You said
-      ${ client.name.last }.
-  - Review Mailing Address: mailing_1
+      ${ client.name.last }
+  - Mailing Address: mailing_1
     button: |
       You said
-      ${ mailing_1 }.
-  - Review Mailing City: mailing_city
+      ${ mailing_1 }
+  - Mailing City: mailing_city
     button: |
       You said
-      ${ mailing_city }.
-  - Review Mailing State: mailing_state
+      ${ mailing_city }
+  - Mailing State: mailing_state
     button: |
       You said
-      ${ mailing_state }.
-  - Review Mailing Zip Code: mailing_zipcode
+      ${ mailing_state }
+  - Mailing Zip Code: mailing_zipcode
     button: |
       You said
-      ${ mailing_zipcode }.
-  - Review Owner Name: ownername_1
+      ${ mailing_zipcode }
+  - Owner Name: ownername_1
     button: |
       You said
-      ${ ownername_1 }.
-  - Review Owner Name 2: ownername_2
+      ${ ownername_1 }
+  - Owner Name 2: ownername_2
     button: |
       You said
-      ${ ownername_2 }.
-  - Review Property Address: propertyaddress_1
+      ${ ownername_2 }
+  - Property Address: propertyaddress_1
     button: |
       You said
-      ${ propertyaddress_1 }.
-  - Review Property City: property_city
+      ${ propertyaddress_1 }
+  - Property City: property_city
     button: |
       You said
-      ${ property_city }.
-  - Review Property City State: property_state
+      ${ property_city }
+  - Property City State: property_state
     button: |
       You said
-      ${ property_state }.
-  - Review Property Zip Code: property_zipcode
+      ${ property_state }
+  - Property Zip Code: property_zipcode
     button: |
       You said
-      ${ property_zipcode }.
-  - Review Phone Number: phone_number
+      ${ property_zipcode }
+  - Phone Number: phone_number
     button: |
       You said
-      ${ phone_number }.
-  - Review OPA Account No.: opa_accountno
+      ${ phone_number }
+  - OPA Account No.: opa_accountno
     button: |
       You said
-      ${ opa_accountno }.
-  - Review Email Address: client.email
+      ${ opa_accountno }
+  - Email Address: client.email
     button: |
       You said
-      ${ client.email }.
-  - Review Value Building: value_bldg
+      ${ client.email }
+  - Value Building: value_bldg
     button: |
       You said
-      ${ value_bldg }.
-  - Review Value Land: value_land
+      ${ value_bldg }
+  - Value Land: value_land
     button: |
       You said
-      ${ value_land }.
-  - Review Contact Preference: contact_preference
+      ${ value_land }
+  - Contact Preference: contact_preference
     button: |
       You said
-      ${ contact_preference }.
+      ${ contact_preference }
 ---
 template: submission_email
 subject: Assessment appeal for ${ propertyaddress_1 }
@@ -517,14 +517,9 @@ code: |
   }
 reconsider: True
 ---
-mandatory: True
-code: |
-  # insert interview logic here
-  all_done
----
+mandatory: fileAppeal == False
 question: |
   You have reached the end of the
   interview.
 subquestion: |
   Thank you for your time.
-sets: all_done
