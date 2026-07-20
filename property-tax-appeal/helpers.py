@@ -37,7 +37,7 @@ def get_home_guesses(guessed_address):
     return new_dictionary
   except TypeError:
     return {}
-    
+
 condition_codes = [
   ("New Construction", "New Construction"),
   ("Rehab", "Rehab"),
