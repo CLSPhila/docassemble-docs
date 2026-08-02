@@ -340,83 +340,143 @@ signature: user_signature
 mandatory: fileAppeal
 continue button field: continuing
 question: |
-  Review your name
+  Review your contact information
 subquestion: |
   Please take some time to review your answers:
 review:
   - Applicant First Name: client.name.first
     button: |
-      You said
       ${ client.name.first }
   - Applicant Last Name: client.name.last
     button: |
-      You said
       ${ client.name.last }
   - Mailing Address: mailing_1
     button: |
-      You said
       ${ mailing_1 }
   - Mailing City: mailing_city
     button: |
-      You said
       ${ mailing_city }
   - Mailing State: mailing_state
     button: |
-      You said
       ${ mailing_state }
   - Mailing Zip Code: mailing_zipcode
     button: |
-      You said
       ${ mailing_zipcode }
   - Owner Name: ownername_1
     button: |
-      You said
       ${ ownername_1 }
   - Owner Name 2: ownername_2
     button: |
-      You said
       ${ ownername_2 }
   - Property Address: propertyaddress_1
     button: |
-      You said
       ${ propertyaddress_1 }
   - Property City: property_city
     button: |
-      You said
       ${ property_city }
   - Property City State: property_state
     button: |
-      You said
       ${ property_state }
   - Property Zip Code: property_zipcode
     button: |
-      You said
       ${ property_zipcode }
   - Phone Number: phone_number
     button: |
-      You said
       ${ phone_number }
   - OPA Account No.: opa_accountno
     button: |
-      You said
       ${ opa_accountno }
   - Email Address: client.email
     button: |
-      You said
       ${ client.email }
+  - Contact Preference: contact_preference
+    button: |
+      ${ contact_preference }
+  - Signature: user_signature
+    button: |
+      ${ user_signature }
+---
+mandatory: fileAppeal
+continue button field: continuing
+question: |
+  Review your appeal information.
+subquestion: |
+  Please take some time to review your answers:
+review:
+  - Recent Appraisal: had_appraisal
+    button: |
+      ${ "Yes" if had_appraisal == True else "No" }
+  - Supporting Appraisal Documents: appraisal_document
+    button: |
+      ${ appraisal_document }
+    show if: had_appraisal
+  - Appraisal Value: appraisal_value
+    button: |
+      ${ appraisal_value }
+    show if: had_appraisal
+  - Appraisal Value: appraisal_value
+    button: |
+      ${ appraisal_value }
+    show if: had_appraisal
+  - Property Characteristics Description: explain_property_chars
+    button: |
+      ${ explain_property_chars }
+  - Correct Condition Code: condition_correct
+    button: |
+      ${ "Yes" if condition_correct == False else "No" }
+  - New Condition Code - Description: condition_description
+    button: |
+      ${ condition_description }
+    show if: condition_correct
+  - New Condition Code - Supporting Documents: condition_code_doc
+    button: |
+      ${ condition_code_doc }
+    show if: condition_correct
+  - Other Property: market_analysis
+    button: |
+      ${ market_analysis }
+  - Market Value - Other Property: market_value
+    button: |
+      ${ market_value }
+    show if: market_analysis
+  - Address - Other Property: address_mv_example
+    button: |
+      ${ address_mv_example }
+    show if: market_analysis
+---
+mandatory: fileAppeal
+continue button field: continuing
+question: |
+  Catchall - Review your appeal information.
+subquestion: |
+  Please take some time to review your answers:
+review:
+  - Catchall - Explanation: incorrect_assessment_rationale
+    button: |
+      ${ incorrect_assessment_rationale }
+  - Catchall - Supporting Docs: appeal_support
+    button: |
+      ${ appeal_support }
+  
+--- 
+mandatory: fileAppeal
+continue button field: continuing
+question: |
+  Review Property Values
+subquestion: |
+  Please take some time to review your answers:
+review:
   - Value Building: value_bldg
     button: |
-      You said
       ${ value_bldg }
   - Value Land: value_land
     button: |
-      You said
       ${ value_land }
-  - Contact Preference: contact_preference
+  - Proposed Value: proposed_value
     button: |
-      You said
-      ${ contact_preference }
----
+      ${ proposed_value }
+  
+--- 
 template: submission_email
 subject: Assessment appeal for ${ propertyaddress_1 }
 content: |
