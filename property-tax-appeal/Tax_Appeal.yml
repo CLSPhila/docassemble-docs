@@ -170,11 +170,11 @@ subquestion: |
 
   This is information from your last assessment. Please verify whether any of the following attributes are incorrect.
 
-  * Square Footage of the Lot:  ${ home_data['total_area'] }
-  * Square Footage of the Home: ${ home_data['total_livable_area'] }
-  * Number of Rooms: ${ home_data['number_of_rooms'] }
-  * Number of Stories:  ${ home_data['number_stories'] }
-  * Fireplaces: ${ home_data['fireplaces'] }
+  * Square Footage of the Lot:  ${ home_data['total_area'] if  home_data['total_area'] is not None else "Not Available"}
+  * Square Footage of the Home: ${ home_data['total_livable_area'] if  home_data['total_livable_area'] is not None else "Not Available" }
+  * Number of Rooms: ${ home_data['number_of_rooms'] if home_data['number_of_rooms'] is not None else "Not Available"}
+  * Number of Stories:  ${ home_data['number_stories'] if home_data['number_stories'] is not None else "Not Available" }
+  * Fireplaces: ${ home_data['fireplaces'] if home_data['fireplaces'] is not None else "Not Available"}
   * Central Air: ${ "Yes" if home_data["central_air"] == "Y" else "No"}
 
   If any are incorrect, please explain in the space why your home may differ in the characteristics here.
