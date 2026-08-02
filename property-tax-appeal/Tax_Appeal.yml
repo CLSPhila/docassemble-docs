@@ -367,7 +367,7 @@ review:
       ${ ownername_1 }
   - Owner Name 2: ownername_2
     button: |
-      ${ ownername_2 }
+      ${ ownername_2 if ownername_2 is not None else "N/A" }
   - Property Address: propertyaddress_1
     button: |
       ${ propertyaddress_1 }
@@ -408,40 +408,36 @@ review:
       ${ "Yes" if had_appraisal == True else "No" }
   - Supporting Appraisal Documents: appraisal_document
     button: |
-      ${ appraisal_document }
+      ${ appraisal_document if appraisal_document is not None else "N/A"}
     show if: had_appraisal
   - Appraisal Value: appraisal_value
     button: |
-      ${ appraisal_value }
-    show if: had_appraisal
-  - Appraisal Value: appraisal_value
-    button: |
-      ${ appraisal_value }
+      ${ appraisal_value if appraisal_value is not None else "N/A"}
     show if: had_appraisal
   - Property Characteristics Description: explain_property_chars
     button: |
-      ${ explain_property_chars }
+      ${ explain_property_chars if explain_property_chars is not None else "N/A"}
   - Correct Condition Code: condition_correct
     button: |
       ${ "Yes" if condition_correct == False else "No" }
   - New Condition Code - Description: condition_description
     button: |
-      ${ condition_description }
+      ${ condition_description if condition_description is not None else "N/A"}
     show if: condition_correct
   - New Condition Code - Supporting Documents: condition_code_doc
     button: |
-      ${ condition_code_doc }
+      ${ condition_code_doc if condition_code_doc is not None else "N/A"}
     show if: condition_correct
   - Other Property: market_analysis
     button: |
-      ${ market_analysis }
+      ${ "Yes" if market_analysis == True else "No" }
   - Market Value - Other Property: market_value
     button: |
-      ${ market_value }
+      ${ market_value if market_value is not None else "N/A"}
     show if: market_analysis
   - Address - Other Property: address_mv_example
     button: |
-      ${ address_mv_example }
+      ${ address_mv_example if address_mv_example is not None else "N/A"}
     show if: market_analysis
 ---
 mandatory: fileAppeal
@@ -453,10 +449,10 @@ subquestion: |
 review:
   - Catchall - Explanation: incorrect_assessment_rationale
     button: |
-      ${ incorrect_assessment_rationale }
+      ${ incorrect_assessment_rationale if incorrect_assessment_rationale is not None else "N/A"}
   - Catchall - Supporting Docs: appeal_support
     button: |
-      ${ appeal_support }
+      ${ appeal_support if appeal_support is not None else "N/A"}
   
 --- 
 mandatory: fileAppeal
