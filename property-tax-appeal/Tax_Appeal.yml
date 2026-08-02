@@ -101,7 +101,7 @@ fields:
       ${ home_data['owner_1'] }
   - Owner Name 2: ownername_2
     default: |
-      ${ home_data['owner_2'] }
+      ${ home_data['owner_2'].title() if home_data['owner_2'] is not None else home_data['owner_2'] }
   - Property Address: propertyaddress_1
     default: |
       ${ home_data['propertyaddress_1'] }
