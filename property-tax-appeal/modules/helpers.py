@@ -29,12 +29,14 @@ def get_home_guesses(guessed_address):
     return {}
   data = get_house_json(guessed_address)
   new_dictionary = {}
-  for row in data["rows"]:
-    new_dictionary[row["location"]] = {}
-    for key, val in row.items():
-      new_dictionary[row["location"]][key] = val
-
-  return new_dictionary
+  try: 
+    for row in data["rows"]:
+      new_dictionary[row["location"]] = {}
+      for key, val in row.items():
+        new_dictionary[row["location"]][key] = val
+    return new_dictionary
+  except TypeError:
+    return {}
 
 condition_codes = [
   ("New Construction", "New Construction"),
